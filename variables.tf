@@ -1,10 +1,14 @@
-variable "azs" {
+variable "azs-map" {
   type = "map"
   default = {
     us-east-1 = "us-east-1b,us-east-1c"
     us-west-1 = "us-west-1a,us-west-1b"
     us-west-2 = "us-west-2a,us-west-2b"
   }
+}
+
+variable "azs" {
+  default="${var.azs-map.${var.region}}"
 }
 
 variable "vpc_cidr" {
@@ -50,9 +54,19 @@ variable "region" {
   default= "us-east-1"
 }
 
+variable "pdat-ecs-ami-map" {
+  type   = "map"
+
+  default = {
+    us-east-1 = "ami-67a3a90d"
+    us-west-1 = "ami-b7d5a8d7"
+    us-west-2 = "ami-c7a451a7"
+  }
+
+}
+
 variable "pdat-ecs-ami" {
-  type   = "string"
-  default= "ami-43043329"
+    default="${var.pdat-ecs-ami-map.${var.region}}"
 }
 
 variable "container_name" {
