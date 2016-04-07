@@ -1,0 +1,12 @@
+---
+- name: Install httpd
+  yum: name=httpd state=present
+
+- name: Install PHP
+  yum: name=php state=present
+
+- name: Remove httpd default configuration for wordpress
+  file: path=/etc/httpd/conf.d/welcome.conf state=absent
+
+- name: Copy httpd configuration for wordpress
+  template: src=default.conf dest=/etc/httpd/conf.d/wordpress.conf

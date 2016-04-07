@@ -1,0 +1,24 @@
+---
+- name: Download WordPress
+  get_url: url=http://wordpress.org/wordpress-{{ wp_version }}.tar.gz dest=/srv/wordpress-{{ wp_version }}.tar.gz
+           sha256sum="{{ wp_sha256sum }}"
+
+- name: Create base wordpress dir for copy to volume
+  file: path=/srv/wordpress_base/ owner=apache group=apache state=directory
+
+- name: Extract archive
+  command: chdir=/srv/ /bin/tar xvf wordpress-{{ wp_version }}.tar.gz -C /srv/wordpress_base --strip-components=1 creates=/srv/wordpress_base/index.php
+
+- name: Fetch random salts for WordPress config
+  local_action: command curl https://api.wordpress.org/secret-key/1.1/salt/
+  register: "wp_salt"
+  sudo: no
+
+- name: Copy post_provisioning playbook
+  template: src=post_provisioning.yml dest=/root/post_provisioning.yml mode=0600
+
+- name: Copy WordPress config file
+  template: src=wp-config.php dest=/srv/wordpress_base/
+
+- name: Change ownership of WordPress installation
+  file: path=/srv/wordpress_base/ owner=apache group=apache state=directory recurse=yes

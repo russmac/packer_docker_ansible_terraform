@@ -1,0 +1,11 @@
+---
+- name: 'Wordpress'
+  hosts: wordpress-server
+  roles:
+    - common
+    - mysql
+    - apache2
+    - wordpress
+  remote_user: root
+  # remote_user: user
+  # sudo: yes

@@ -1,0 +1,11 @@
+---
+- name: Install client packages
+  yum: name={{ item }} state=present
+  with_items:
+   - php-mysql
+   - mysql
+   - MySQL-python
+
+# Docker container root $HOME is configured by task definition
+- name: Copy .my.cnf to /root for ansible mysql module post_provisioning
+  template: src=.my.cnf dest=/root mode=0600

@@ -1,0 +1,31 @@
+[
+    {
+      "name": "pdat-dockerfile",
+      "hostname": "",
+      "image": "",
+      "memory": 2048,
+      "cpu": 50,
+      "command": [
+        "sh", "-c","/usr/bin/ansible-playbook -v -i 'localhost,' -c local /root/post_provisioning.yml && test -f /srv/wordpress/index.php || cp -r /srv/wordpress_base/* /srv/wordpress && /usr/sbin/httpd -DFOREGROUND"
+      ],
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 80
+        }
+      ],
+      "environment" : [
+        { "name" : "HOME", "value" : "/root" },
+        { "name" : "PATH", "value" : "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" },
+        { "name" : "PYTHONUNBUFFERED", "value" : "1" },
+        { "name" : "ANSIBLE_FORCE_COLOR", "value" : "0" }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "wordpress_data",
+          "containerPath": "/srv/wordpress"
+        }
+      ]
+    }
+
+]

@@ -1,0 +1,41 @@
+{
+  "variables": {
+    "host_name": "",
+    "tag": "latest",
+    "aws_ecr": ""
+  },
+  "builders": [{
+                "type": "docker",
+                "image": "blalor/centos",
+                "commit": true,
+                "run_command": ["--hostname='{{ user `host_name` }}'","-d", "-i", "-t", "{{.Image}}", "/bin/sh"]
+              }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["yum -y install ansible"]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "wordpress-nginx/site.yml",
+      "playbook_dir": "wordpress-nginx",
+      "inventory_groups": "wordpress-server"
+    }
+   ],
+  "post-processors":
+    [[
+      {
+        "type": "docker-tag",
+        "repository": "{{user `aws_ecr`}}",
+        "tag": "{{ user `tag` }}"
+      },
+      {
+        "type": "docker-push",
+        "login": true,
+        "login_email": "none",
+        "login_username": "AWS",
+        "login_password": "",
+        "login_server": ""
+      }
+    ]]
+}
