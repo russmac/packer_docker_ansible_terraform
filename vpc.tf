@@ -1,22 +1,19 @@
 ///### VPC
 ### ECS
 
-resource "aws_vpc" "pdat-vpc" {
-  cidr_block = "10.0.0.0/16"
-}
-
-resource "aws_internet_gateway" "pdat-igw" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-
-  tags {
-    Name = "pdat_igw"
-  }
+module "vpc" {
+  source = "git::https://github.com/terraform-community-modules/tf_aws_vpc.git?ref=master"
+  name = "pdat-vpc"
+  cidr = "${var.vpc_cidr}"
+  private_subnets = "${var.subnet_private_cidr}"
+  public_subnets  = "${var.subnet_public_cidr}"
+  azs      = "${var.azs}}"
 }
 
 resource "aws_security_group" "pdat-security-group" {
   name = "pdat-security-group"
   description = "pdat_security_group"
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
+  vpc_id = "${module.vpc.vpc_id}"
 
   ingress {
     from_port = 0
@@ -52,60 +49,19 @@ resource "aws_security_group" "pdat-security-group" {
 }
 
 
-resource "aws_subnet" "pdat-public-a" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-1b"
 
-  tags {
-    Name = "pdat_public_a"
-  }
-}
-
-resource "aws_subnet" "pdat-public-b" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-  cidr_block = "10.0.2.0/24"
-  availability_zone = "us-east-1c"
-
-  tags {
-    Name = "pdat_public_b"
-  }
-}
-
-resource "aws_route_table" "pdat-public-ab-rt" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.pdat-igw.id}"
-  }
-
-  tags {
-    Name = "pdat-public-a-rt"
-  }
-}
-
-resource "aws_route_table_association" "pdat-public-a-rt-ass" {
-  subnet_id = "${aws_subnet.pdat-public-a.id}"
-  route_table_id = "${aws_route_table.pdat-public-ab-rt.id}"
-}
-
-resource "aws_route_table_association" "pdat-public-b-rt-ass" {
-  subnet_id = "${aws_subnet.pdat-public-b.id}"
-  route_table_id = "${aws_route_table.pdat-public-ab-rt.id}"
-}
-
-### RDS
+### RDS //vpc_id should output from vpc module
 
 resource "aws_security_group" "pdat-rds-security-group" {
   name = "pdat-rds-security-group"
   description = "pdat_rds_security_group"
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
+  vpc_id = "${module.vpc.vpc_id}"
 
   ingress {
     from_port = 3306
     to_port = 3306
     protocol = "tcp"
-    cidr_blocks = ["10.0.0.0/23"]
+    cidr_blocks = ["${var.subnet_private_cidr}"]
   }
 
   egress {
@@ -120,32 +76,30 @@ resource "aws_security_group" "pdat-rds-security-group" {
   }
 }
 
-resource "aws_db_subnet_group" "pdat-rds-subnet-group" {
-  name = "pdat-rds-subnet-group"
-  description = "pdat rds subnet group"
-  subnet_ids = ["${aws_subnet.pdat-rds-a.id}", "${aws_subnet.pdat-rds-b.id}"]
-  tags {
-    Name = "pdat rds subnet group"
-  }
-}
-
 
 resource "aws_subnet" "pdat-rds-a" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-  cidr_block = "10.0.3.0/24"
-  availability_zone = "us-east-1b"
-
+  vpc_id = "${module.vpc.vpc_id}"
+  cidr_block = "${var.rds_subnet_a}"
+  availability_zone = "element(${var.azs},0)"
   tags {
     Name = "pdat_rds_a"
   }
 }
 
 resource "aws_subnet" "pdat-rds-b" {
-  vpc_id = "${aws_vpc.pdat-vpc.id}"
-  cidr_block = "10.0.4.0/24"
-  availability_zone = "us-east-1c"
+  vpc_id = "${module.vpc.vpc_id}"
+  cidr_block = "${var.rds_subnet_b}"
+  availability_zone = "element(${var.azs},1)"
+    tags {
+      Name = "pdat_rds_b"
+    }
+}
 
-  tags {
-    Name = "pdat_rds_b"
-  }
+resource "aws_db_subnet_group" "pdat-rds-subnet-group" {
+  name = "pdat-rds-subnet-group"
+  description = "pdat rds subnet group"
+  subnet_ids = ["${aws_subnet.pdat-rds-a.id}","${aws_subnet.pdat-rds-b.id}"]
+    tags {
+      Name = "pdat rds subnet group"
+    }
 }

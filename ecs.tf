@@ -25,7 +25,7 @@ resource "aws_instance" "pdat-ecs-instance" {
   iam_instance_profile = "${aws_iam_instance_profile.pdat-ecs-profile.id}"
   associate_public_ip_address = true
   vpc_security_group_ids = ["${aws_security_group.pdat-security-group.id}"]
-  subnet_id = "${aws_subnet.pdat-public-a.id}"
+  subnet_id = "element(${module.vpc.private_subnets},0)"
   key_name = "${var.key_name}"
   user_data = "${template_file.user_data.rendered}"
 
@@ -63,8 +63,6 @@ resource "aws_ecs_service" "pdat-ecs-service" {
   cluster = "${aws_ecs_cluster.pdat-ecs-cluster.id}"
   task_definition = "${aws_ecs_task_definition.pdat-ecs-wordpress.arn}"
   desired_count = 1
-
-
   iam_role = "${aws_iam_role.pdat-ecs-role.id}"
 
   load_balancer {
@@ -124,7 +122,7 @@ resource "aws_elb" "pdat-elb" {
 }
 
 output "public EIP" {
-  value = "http://pdat.graphenic.com.au : ec2-user@${aws_instance.pdat-ecs-instance.public_ip}"
+  value = "http://${var.public_hostname} : ec2-user@${aws_instance.pdat-ecs-instance.public_ip}"
 }
 
 output "cluster_name" {

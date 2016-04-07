@@ -1,3 +1,35 @@
+variable "azs" {
+  type = "map"
+  default = {
+    us-east-1 = "us-east-1b,us-east-1c"
+    us-west-1 = "us-west-1a,us-west-1b"
+    us-west-2 = "us-west-2a,us-west-2b"
+  }
+}
+
+variable "vpc_cidr" {
+  type   = "string"
+  default= "10.0.0.0/16"
+}
+variable "subnet_private_cidr" {
+  type   = "string"
+  default= "10.0.3.0/24,10.0.4.0/24"
+}
+variable "subnet_public_cidr" {
+  type   = "string"
+  default= "10.0.1.0/24,10.0.2.0/24"
+}
+
+variable "rds_subnet_a" {
+  type   = "string"
+  default= "10.0.5.0/24"
+}
+
+variable "rds_subnet_b" {
+  type   = "string"
+  default= "10.0.6.0/24"
+}
+
 variable "cluster_name" {
   type   = "string"
   default= "pdat_ecs_cluster"
@@ -31,6 +63,11 @@ variable "container_name" {
 variable "route53_domain" {
   type   = "string"
   default= ""
+}
+
+variable "public_hostname" {
+  type   = "string"
+  default= "www.example.com"
 }
 
 variable "route53_zoneid" {
