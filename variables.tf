@@ -7,8 +7,9 @@ variable "azs-map" {
   }
 }
 
-variable "azs" {
-  default="${var.azs-map.${var.region}}"
+variable "region" {
+  type   = "string"
+  default= "us-east-1"
 }
 
 variable "vpc_cidr" {
@@ -49,9 +50,14 @@ variable "allow_to_80" {
   default= ""
 }
 
-variable "region" {
+variable "ecs_instance_size" {
+  type = "string"
+  default = "t2.medium"
+}
+
+variable "ecs_instance_count" {
   type   = "string"
-  default= "us-east-1"
+  default= "1"
 }
 
 variable "pdat-ecs-ami-map" {
@@ -63,10 +69,6 @@ variable "pdat-ecs-ami-map" {
     us-west-2 = "ami-c7a451a7"
   }
 
-}
-
-variable "pdat-ecs-ami" {
-    default="${var.pdat-ecs-ami-map.${var.region}}"
 }
 
 variable "container_name" {
@@ -81,7 +83,7 @@ variable "route53_domain" {
 
 variable "public_hostname" {
   type   = "string"
-  default= "www.example.com"
+  default= ""
 }
 
 variable "route53_zoneid" {

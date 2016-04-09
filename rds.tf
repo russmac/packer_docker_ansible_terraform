@@ -12,7 +12,7 @@ resource "aws_db_instance" "pdat-rds" {
   db_subnet_group_name = "${aws_db_subnet_group.pdat-rds-subnet-group.id}"
 }
 
-// Ansible post provisions in container and expects this CNAME to work
+// Ansible post provisons in container and expects this CNAME to work
 resource "aws_route53_record" "pdat-rds-route53" {
   zone_id = "${var.route53_zoneid}"
   name = "pdat-rds.${var.route53_domain}"

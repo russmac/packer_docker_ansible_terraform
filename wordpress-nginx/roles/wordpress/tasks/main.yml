@@ -1,7 +1,7 @@
 ---
 - name: Download WordPress
   get_url: url=http://wordpress.org/wordpress-{{ wp_version }}.tar.gz dest=/srv/wordpress-{{ wp_version }}.tar.gz
-           sha256sum="{{ wp_sha256sum }}"
+           sha256sum={{ wp_sha256sum }}
 
 - name: Create base wordpress dir for copy to volume
   file: path=/srv/wordpress_base/ owner=apache group=apache state=directory

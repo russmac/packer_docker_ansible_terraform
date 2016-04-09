@@ -1,6 +1,6 @@
 [
     {
-      "name": "pdat-dockerfile",
+      "name": "pdat_wordpress",
       "hostname": "",
       "image": "",
       "memory": 2048,
@@ -11,7 +11,7 @@
       "portMappings": [
         {
           "containerPort": 8080,
-          "hostPort": 80
+          "hostPort": 8080
         }
       ],
       "environment" : [

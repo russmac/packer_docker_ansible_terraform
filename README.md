@@ -4,6 +4,8 @@ Deploys a wordpress container in AWS ECS.
 
 ### Use
 
+Grab a stable release from "Releases" (they are all tested working)
+
 Requires you setup AWS Elastic Container Registry yourself first.
 You will then need to get your 24 hour ecr token and repoistory address from AWS ECR (using awscli) using this command.
 
@@ -11,7 +13,11 @@ aws ecr get-login
 
 Then replace the existing ecr address and token in wordpress_template.json
 
-Make sure to change variables.tf and fillout wordpress_template.json and task-definitions/dockerfile.json and  wordpress-nginx/group_vars/all 
+Make sure to change your passwords and account specific parameters in:
+ variables.tf 
+ wordpress_template.json
+ task-definitions/dockerfile.json
+ wordpress-nginx/group_vars/all 
 
 ```
 packer build wordpress_template.json
