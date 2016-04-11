@@ -52,10 +52,25 @@ variable "allow_to_80" {
 
 variable "ecs_instance_size" {
   type = "string"
-  default = "t2.medium"
+  default = "t2.small"
 }
 
-variable "ecs_instance_count" {
+variable "ecs_task_count" {
+  type   = "string"
+  default= "1"
+}
+
+variable "ecs_instance_desired" {
+  type   = "string"
+  default= "1"
+}
+
+variable "ecs_instance_min" {
+  type   = "string"
+  default= "1"
+}
+
+variable "ecs_instance_max" {
   type   = "string"
   default= "1"
 }

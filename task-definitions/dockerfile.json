@@ -3,7 +3,7 @@
       "name": "pdat_wordpress",
       "hostname": "",
       "image": "",
-      "memory": 2048,
+      "memory": 1024,
       "cpu": 50,
       "command": [
         "sh", "-c","/usr/bin/ansible-playbook -v -i 'localhost,' -c local /root/post_provisioning.yml && test -f /srv/wordpress/index.php || cp -r /srv/wordpress_base/* /srv/wordpress && /usr/sbin/httpd -DFOREGROUND"

@@ -19,23 +19,37 @@ resource "template_file" "user_data" {
 }
 
 // Create instance
-resource "aws_instance" "pdat-ecs-instance" {
-  ami = "${lookup(var.pdat-ecs-ami-map, var.region)}"
+resource "aws_launch_configuration" "pdat-ecs-lc" {
+  name = "pdat-ecs-lc"
+  image_id = "${lookup(var.pdat-ecs-ami-map, var.region)}"
   instance_type = "${var.ecs_instance_size}"
   iam_instance_profile = "${aws_iam_instance_profile.pdat-ec2-profile.id}"
-  associate_public_ip_address = true
-  vpc_security_group_ids = ["${aws_security_group.pdat-security-group.id}"]
-  subnet_id = "${element(split(",",module.vpc.public_subnets),0)}"
   key_name = "${var.key_name}"
   user_data = "${template_file.user_data.rendered}"
-
-  tags {
-    Name = "pdat_ecs_instance"
-  }
-
   depends_on = ["aws_iam_instance_profile.pdat-ec2-profile"]
-
 }
+
+resource "aws_autoscaling_group" "pdat-asg" {
+  availability_zones = ["${element(split(",",lookup(var.azs-map, var.region)),0)}",
+                        "${element(split(",",lookup(var.azs-map, var.region)),1)}"]
+  name = "pdat-asg"
+  max_size = "${var.ecs_instance_max}"
+  min_size = "${var.ecs_instance_min}"
+  health_check_grace_period = 3600
+  health_check_type = "EC2"
+  desired_capacity = "${var.ecs_instance_desired}"
+  force_delete = true
+  launch_configuration = "${aws_launch_configuration.pdat-ecs-lc.id}"
+  load_balancers=["${aws_elb.pdat-elb.id}"]
+  vpc_zone_identifier=["${element(split(",",module.vpc.public_subnets),0)}",
+                       "${element(split(",",module.vpc.public_subnets),1)}"]
+
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 
 resource "aws_route53_record" "pdat-ecs-route53" {
   zone_id = "${var.route53_zoneid}"
@@ -62,7 +76,7 @@ resource "aws_ecs_service" "pdat-ecs-service" {
   name = "pdat_ecs"
   cluster = "${aws_ecs_cluster.pdat-ecs-cluster.id}"
   task_definition = "${aws_ecs_task_definition.pdat-ecs-wordpress.arn}"
-  desired_count = "${var.ecs_instance_count}"
+  desired_count = "${var.ecs_task_count}"
   iam_role = "${aws_iam_role.pdat-ecs-role.id}"
 
   load_balancer {
@@ -71,7 +85,10 @@ resource "aws_ecs_service" "pdat-ecs-service" {
     container_port = 8080
   }
 
- depends_on = ["aws_elb.pdat-elb","aws_iam_role.pdat-ecs-role","aws_iam_role_policy.pdat-ecs-policy","aws_instance.pdat-ecs-instance"]
+ depends_on = ["aws_elb.pdat-elb",
+               "aws_iam_role.pdat-ecs-role",
+               "aws_iam_role_policy.pdat-ecs-policy",
+               "aws_launch_configuration.pdat-ecs-lc"]
 
 }
 
@@ -88,9 +105,9 @@ resource "aws_s3_bucket" "pdat-elb-s3" {
 
 resource "aws_elb" "pdat-elb" {
   name = "pdat-elb"
-  subnets = ["${element(split(",",module.vpc.public_subnets),0)}","${element(split(",",module.vpc.public_subnets),1)}"]
+  subnets = ["${element(split(",",module.vpc.public_subnets),0)}",
+             "${element(split(",",module.vpc.public_subnets),1)}"]
   security_groups = ["${aws_security_group.pdat-elb-security-group.id}"]
-  instances = ["${aws_instance.pdat-ecs-instance.id}"]
 
   access_logs {
     bucket = "elb-logs"
@@ -113,17 +130,16 @@ resource "aws_elb" "pdat-elb" {
     interval = 30
   }
 
-  cross_zone_load_balancing = false
+  cross_zone_load_balancing = true
   idle_timeout = 30
-  connection_draining = false
 
   tags {
     Name = "pdat_elb"
   }
 }
 
-output "public EIP" {
-  value = "ELB: http://${var.public_hostname} | Instance EIP: ec2-user@${aws_instance.pdat-ecs-instance.public_ip}"
+output "elb" {
+  value = "ELB: http://${var.public_hostname}"
 }
 
 output "cluster_name" {
