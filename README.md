@@ -1,3 +1,7 @@
+#DEPRECATED
+
+Untested in over 8 months
+
 ## A project used to learn packer docker ansible and terraform.
 Deploys a wordpress container in AWS ECS.
 
